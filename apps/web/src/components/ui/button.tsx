@@ -1,7 +1,7 @@
 import { type VariantProps, cva } from 'class-variance-authority';
-import type { ComponentProps, JSX, ReactNode } from 'react';
+import type { ComponentProps, JSX } from 'react';
 
-import { cn, unsafeChildren } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
   'inline-flex items-center justify-center rounded font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-0',
@@ -23,23 +23,8 @@ const buttonVariants = cva(
   },
 );
 
-// `ref` is omitted deliberately (not just for typing convenience): this
-// component doesn't forward refs, and including it — or the inherited
-// `children` field — hits a cross-package @types/react resolution issue in
-// this monorepo (web's React 19 types vs. types reachable via apps/mobile's
-// React Native 18 during Next's build-time program construction). `children`
-// is re-declared explicitly against this file's own `react` import to work
-// around it.
-export interface ButtonProps
-  extends Omit<ComponentProps<'button'>, 'ref' | 'children'>,
-    VariantProps<typeof buttonVariants> {
-  children?: ReactNode;
-}
+export interface ButtonProps extends ComponentProps<'button'>, VariantProps<typeof buttonVariants> {}
 
-export function Button({ className, variant, size, children, ...props }: ButtonProps): JSX.Element {
-  return (
-    <button className={cn(buttonVariants({ variant, size }), className)} {...props}>
-      {unsafeChildren(children)}
-    </button>
-  );
+export function Button({ className, variant, size, ...props }: ButtonProps): JSX.Element {
+  return <button className={cn(buttonVariants({ variant, size }), className)} {...props} />;
 }

@@ -75,9 +75,9 @@ flowchart LR
    code via the `uuidv7` package (Postgres 16 has no native `uuidv7()`).
 4. **Audit** — every mutating endpoint writes a row to `audit_log`
    (`apps/api/src/lib/audit.ts`).
-5. **Types** — TypeScript strict, no `any`, no non-null assertions (enforced by
-   `packages/config/eslint-preset.js`, one narrow, heavily-commented exception — see
-   [Known issues](#known-issues-worth-knowing-about)). Every request body, query, and
+5. **Types** — TypeScript strict, no `any`, no non-null assertions, enforced by
+   `packages/config/eslint-preset.js` with zero exceptions anywhere in the codebase
+   (verified by grep, not just by the linter passing). Every request body, query, and
    param is Zod-validated at the API boundary via `fastify-type-provider-zod`.
 6. **Encryption** — `packages/core/src/crypto.ts` implements AES-256-GCM
    `encryptField()`/`decryptField()`, keyed by `ENCRYPTION_KEY`. Used for PAN, bank
@@ -179,25 +179,50 @@ DELETE /auth/sessions/:id          PUT    /kyc/upload/:documentId
 
 ## Known issues worth knowing about
 
-- **Mixed React versions in one pnpm workspace.** `apps/web` runs React 19;
-  `apps/mobile` runs React Native's bundled React 18. During `next build`'s
-  type-checking pass, TypeScript occasionally resolves a `ReactNode`/`ref` type
-  through the "wrong" side of that split and refuses to unify two structurally
-  identical types from different packages (`TS2322`, *"Two different types with this
-  name exist, but they are unrelated"*). It's a pure static-analysis artifact — the
-  compiled JS is unaffected — worked around in a handful of thin native-element
-  wrapper components (`apps/web/src/components/ui/*`, `apps/web/src/lib/utils.ts`'s
-  `unsafeChildren` helper) with a documented, narrowly-scoped cast. `pnpm typecheck`,
-  `pnpm lint`, and `next build` all pass clean; this is the one intentional exception
-  to the "no `any`" rule, and it's commented at every site.
-- **`apps/mobile` peer-dependency warnings.** `expo-router`/`nativewind` pull in
-  `react-native-reanimated`/`react-native-worklets` versions that expect a newer
-  React Native than Expo SDK 52 ships; these are unmet *peers* on packages this
-  codebase doesn't actually import, not resolution failures — `pnpm install`
-  completes and `pnpm --filter @tradex/mobile typecheck`/`lint` are clean. Since this
-  environment has no iOS/Android simulator, the mobile app is verified by
-  typecheck/lint only, not a real Metro/Expo Go run — treat that as the next thing to
-  confirm in an environment that has one.
+- ~~Mixed React versions in one pnpm workspace~~ **Resolved.** `apps/web` originally
+  ran React 19 while `apps/mobile` ran React Native's bundled React 18, and having two
+  `@types/react` major-version lines in the same workspace caused TypeScript to
+  occasionally refuse to unify two structurally identical types resolved through
+  different packages (`TS2322`, *"Two different types with this name exist, but they
+  are unrelated"*), worked around with a handful of narrowly-scoped `any` casts.
+  React Native 0.76 (Expo SDK 52) has a **hard runtime peer requirement on React
+  18.3.1** — not just a type mismatch, an actual constraint enforced by RN's renderer
+  — and Next.js 15 officially supports `^18.2.0` as a peer (confirmed via its own
+  `package.json`), so the fix was to unify the whole workspace on React 18.3.1 rather
+  than try to reconcile two versions. The root `package.json` now pins this with
+  `pnpm.overrides`:
+  ```json
+  "pnpm": {
+    "overrides": {
+      "react": "18.3.1",
+      "react-dom": "18.3.1",
+      "@types/react": "18.3.31",
+      "@types/react-dom": "18.3.7"
+    }
+  }
+  ```
+  With a single resolved instance of `react`/`react-dom`/`@types/react`/
+  `@types/react-dom` workspace-wide (verified — only one entry of each under
+  `node_modules/.pnpm`), every workaround was removable: the `unsafeChildren` helper
+  in `apps/web/src/lib/utils.ts` is gone, all four `apps/web/src/components/ui/*`
+  files are back to their natural, unrestricted prop types, and both `Suspense` usages
+  (`(auth)/verify-otp`, `(auth)/reset-password`) are back to plain JSX instead of the
+  `createElement` workaround. There is no longer any `any`, `@ts-expect-error`, or
+  similar escape hatch anywhere in `apps/web` — confirmed by grep, not just typecheck.
+  `pnpm typecheck`, `pnpm lint`, `next build`, and a live runtime smoke test (login →
+  cookie-rotated dashboard access → KYC wizard → 2FA/sessions page, all against real
+  Postgres/Redis) all pass clean on the unified version.
+- **`apps/mobile` peer-dependency warnings (unrelated to the React version fix
+  above).** `expo-router`/`nativewind` pull in `react-native-reanimated`/
+  `react-native-worklets` versions that expect a newer React Native than Expo SDK 52
+  ships; these are unmet *peers* on packages this codebase doesn't actually import,
+  not resolution failures — `pnpm install` completes and `pnpm --filter
+  @tradex/mobile typecheck`/`lint` are clean. (The React 18/19 split previously also
+  showed up here as a `react-dom`/`react-helmet-async` peer warning; unifying on
+  React 18.3.1 removed those two specifically — only the reanimated/worklets ones
+  remain.) Since this environment has no iOS/Android simulator, the mobile app is
+  verified by typecheck/lint only, not a real Metro/Expo Go run — treat that as the
+  next thing to confirm in an environment that has one.
 - **KYC verification is submit-only in Phase 1.** `POST /v1/kyc/submit` moves
   `kyc_status` to `SUBMITTED`; there's no endpoint yet to move it to `VERIFIED` (no
   ops/admin surface was in scope). `user.status` accordingly stays `PENDING_KYC` until

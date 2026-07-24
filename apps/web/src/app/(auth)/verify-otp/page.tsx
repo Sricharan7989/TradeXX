@@ -3,7 +3,7 @@
 import { useMutation } from '@tanstack/react-query';
 import type { OtpPurpose } from '@tradex/types';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { createElement, type FormEvent, type JSX, Suspense, useState } from 'react';
+import { type FormEvent, type JSX, Suspense, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -77,7 +77,9 @@ function VerifyOtpForm(): JSX.Element {
 }
 
 export default function VerifyOtpPage(): JSX.Element {
-  // See reset-password/page.tsx for why createElement is used here instead
-  // of JSX tag syntax for Suspense specifically.
-  return createElement(Suspense, { fallback: null }, createElement(VerifyOtpForm));
+  return (
+    <Suspense fallback={null}>
+      <VerifyOtpForm />
+    </Suspense>
+  );
 }

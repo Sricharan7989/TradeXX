@@ -2,12 +2,7 @@ import type { InputHTMLAttributes, JSX } from 'react';
 
 import { cn } from '@/lib/utils';
 
-// `<input>` never renders children — omitting the field (inherited but
-// always-unused) sidesteps a cross-package @types/react comparison issue;
-// see unsafeChildren's doc comment in lib/utils.ts for the full story.
-export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'children'>;
-
-export function Input({ className, ...props }: InputProps): JSX.Element {
+export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>): JSX.Element {
   return (
     <input
       className={cn(

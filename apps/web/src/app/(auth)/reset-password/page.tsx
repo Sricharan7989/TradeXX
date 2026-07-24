@@ -2,7 +2,7 @@
 
 import { useMutation } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { createElement, type FormEvent, type JSX, Suspense, useState } from 'react';
+import { type FormEvent, type JSX, Suspense, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -74,9 +74,9 @@ function ResetPasswordForm(): JSX.Element {
 }
 
 export default function ResetPasswordPage(): JSX.Element {
-  // JSX tag syntax for Suspense trips a TS2786 cross-version @types/react
-  // resolution issue in this monorepo (web@19 + mobile's react-native@18
-  // both present) — createElement sidesteps the JSX.ElementType check that
-  // fails. See docs/troubleshooting notes for full detail.
-  return createElement(Suspense, { fallback: null }, createElement(ResetPasswordForm));
+  return (
+    <Suspense fallback={null}>
+      <ResetPasswordForm />
+    </Suspense>
+  );
 }
