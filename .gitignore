@@ -1,0 +1,41 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build outputs
+dist/
+build/
+.next/
+.expo/
+.turbo/
+*.tsbuildinfo
+
+# env
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# test / coverage
+coverage/
+.vitest-cache/
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# uploads (local disk stub for KYC docs)
+apps/api/uploads/*
+!apps/api/uploads/.gitkeep
+
+# editor / os
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# misc
+*.pem
+.env.vault

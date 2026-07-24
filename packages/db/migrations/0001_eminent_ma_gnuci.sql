@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "backup_codes_hash" jsonb DEFAULT '[]'::jsonb NOT NULL;

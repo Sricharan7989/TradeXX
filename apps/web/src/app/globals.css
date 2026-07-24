@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'Roboto Mono', monospace;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply bg-surface-0 text-ink font-sans antialiased;
+}
+
+/* Dense, calm, information-first — no glossy gradients, minimal motion. */
+* {
+  @apply border-surface-border;
+}
+
+::selection {
+  @apply bg-accent-700 text-white;
+}
+
+input,
+select,
+textarea {
+  @apply bg-surface-1 text-ink placeholder:text-ink-faint;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  @apply bg-surface-3 rounded-full;
+}

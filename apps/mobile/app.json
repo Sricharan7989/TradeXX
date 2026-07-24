@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "Tradex",
+    "slug": "tradex",
+    "scheme": "tradex",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#0b0e14"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.tradex.app",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Unlock Tradex with Face ID"
+      }
+    },
+    "android": {
+      "package": "com.tradex.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0b0e14"
+      },
+      "permissions": ["USE_BIOMETRIC", "USE_FINGERPRINT"]
+    },
+    "plugins": ["expo-router", "expo-secure-store", "expo-local-authentication"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
