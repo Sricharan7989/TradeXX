@@ -1,3 +1,15 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+# React unification override. See README "Known issues" for the full story.
+# NOTE: pnpm 9.15.x (this repo's pinned version, see packageManager) reads
+# overrides from package.json's "pnpm.overrides" — NOT from here. This block
+# is the pnpm 10+ location (settings moved to pnpm-workspace.yaml); it is kept
+# in sync so the override survives a pnpm 10 upgrade. Both are intentionally
+# present. Change both together.
+overrides:
+  react: 18.3.1
+  react-dom: 18.3.1
+  "@types/react": 18.3.31
+  "@types/react-dom": 18.3.7

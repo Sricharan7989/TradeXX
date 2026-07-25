@@ -189,18 +189,30 @@ DELETE /auth/sessions/:id          PUT    /kyc/upload/:documentId
   18.3.1** — not just a type mismatch, an actual constraint enforced by RN's renderer
   — and Next.js 15 officially supports `^18.2.0` as a peer (confirmed via its own
   `package.json`), so the fix was to unify the whole workspace on React 18.3.1 rather
-  than try to reconcile two versions. The root `package.json` now pins this with
-  `pnpm.overrides`:
-  ```json
-  "pnpm": {
-    "overrides": {
-      "react": "18.3.1",
-      "react-dom": "18.3.1",
-      "@types/react": "18.3.31",
-      "@types/react-dom": "18.3.7"
-    }
-  }
+  than try to reconcile two versions. This is pinned with pnpm `overrides`, declared
+  in **both** supported locations because the location pnpm reads depends on its major
+  version, and this repo's `packageManager` pins `pnpm@9.15.9`:
+
+  - **`package.json` → `pnpm.overrides`** — the location pnpm **9.x** reads (verified
+    empirically on 9.15.9 with a discriminator test: an override here is applied; the
+    same override in `pnpm-workspace.yaml` is silently ignored, and 9.15.9 emits *no*
+    "pnpm field is no longer read" warning).
+  - **`pnpm-workspace.yaml` → `overrides`** — the location pnpm **10+** reads (settings
+    moved there per <https://pnpm.io/settings>; on 10, the `package.json` `pnpm` field
+    is deprecated and warns). Kept in sync so the override survives a pnpm 10 upgrade.
+
+  Both carry identical values:
+  ```yaml
+  overrides:
+    react: 18.3.1
+    react-dom: 18.3.1
+    "@types/react": 18.3.31
+    "@types/react-dom": 18.3.7
   ```
+  On the pinned pnpm 9.15.9 the `package.json` block is authoritative; if the toolchain
+  is later bumped to pnpm 10 (update `packageManager` too), the `pnpm-workspace.yaml`
+  block takes over and the now-redundant `package.json` `pnpm` field can be removed to
+  silence pnpm 10's deprecation warning. Change both blocks together until then.
   With a single resolved instance of `react`/`react-dom`/`@types/react`/
   `@types/react-dom` workspace-wide (verified — only one entry of each under
   `node_modules/.pnpm`), every workaround was removable: the `unsafeChildren` helper
